@@ -1,21 +1,51 @@
 #!/usr/bin/env node
-import 'source-map-support/register';
-import * as cdk from 'aws-cdk-lib';
-import { AwsLogRetentionHandlerStack } from '../lib/aws-log-retention-handler-stack';
+import "source-map-support/register";
 
-const app = new cdk.App();
-new AwsLogRetentionHandlerStack(app, 'AwsLogRetentionHandlerStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
+import { App, Environment, Tags } from "aws-cdk-lib/core";
+import { AwsLogRetentionHandlerStack } from "../lib/aws-log-retention-handler-stack.js";
+import { RetentionDays } from "aws-cdk-lib/aws-logs";
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const app = new App();
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+const cronMinute = app.node.tryGetContext(`cronMinute`);
+const cronHour = app.node.tryGetContext(`cronHour`);
+const cronDay = app.node.tryGetContext(`cronDay`);
+const logLevel = app.node.tryGetContext(`logLevel`);
+const logGroupPattern = app.node.tryGetContext(`logGroupPattern`);
+const logRetentionPeriod = app.node.tryGetContext(`logRetentionPeriod`);
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+if (!logRetentionPeriod) {
+  throw new Error("Missing logRetentionPeriod context value");
+}
+
+if (!Object.keys(RetentionDays).includes(logRetentionPeriod)) {
+  throw new Error(
+    `Illegal value ${logRetentionPeriod} for logRetentionPeriod context value`
+  );
+}
+
+const env: Environment = {
+  account: process.env.CDK_DEPLOY_ACCOUNT ?? process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEPLOY_REGION ?? process.env.CDK_DEFAULT_REGION,
+};
+
+const awsLogRetentionHandlerStack = new AwsLogRetentionHandlerStack(
+  app,
+  "AwsLogRetentionHandlerStack",
+  {
+    env,
+    logLevel,
+    logGroupPattern,
+    logRetentionPeriod,
+    cronOptions: {
+      minute: cronMinute,
+      hour: cronHour,
+      day: cronDay,
+    },
+  }
+);
+
+[awsLogRetentionHandlerStack].forEach((stack) => {
+  Tags.of(stack).add(`StackCategory`, "infrastructure");
+  Tags.of(stack).add(`StackSubCategory`, `cloudwatch_logs`);
 });
