@@ -31,11 +31,6 @@ const lambdaHandler = async (
     AllRegions: false,
   });
 
-  logger.debug(
-    `Regions to check are`,
-    Regions?.map((region) => region.RegionName).join(", ") ?? "N/A"
-  );
-
   for await (const region of Regions ?? []) {
     if (region.RegionName) {
       logger.info(`Processing logs in the region ${region.RegionName}`);
@@ -50,6 +45,16 @@ const lambdaHandler = async (
       const logGroups = await cloudwatchLogsClient.describeLogGroups();
 
       for await (const logGroup of logGroups) {
+        if (
+          event.logGroupPaterrn !== "ALL" &&
+          !logGroup.logGroupName?.match(event.logGroupPaterrn)
+        ) {
+          logger.info(
+            `${logGroup.logGroupName} does not match given pattern ${event.logGroupPaterrn}`
+          );
+          continue;
+        }
+
         if (!logGroup.retentionInDays) {
           logger.debug(
             `The log group ${logGroup.logGroupName} is currently configured to never delete logs`
