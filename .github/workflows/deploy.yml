@@ -21,9 +21,9 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0
         with:
-          role-to-assume: ${{ env.OIDC_IDP_IAM_ROLE }}
+          role-to-assume: ${{ vars.OIDC_IDP_IAM_ROLE }}
           role-session-name: deployment-session
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
       - name: setup node
         uses: actions/setup-node@v3
         with:
@@ -33,7 +33,7 @@ jobs:
         run: npm install
       - name: cdk
         run: |
-          npm run cdk -- ${{env.CDK_COMMAND}} ${{env.CDK_FLAGS}} \
+          npm run cdk -- ${{vars.CDK_COMMAND}} ${{vars.CDK_FLAGS}} \
             --context "cronHour=${{vars.CRON_HOUR}}" \
             --context "cronMinute=${{vars.CRON_MINUTE}}" \
             --context "cronDay=${{vars.CRON_DAY}}" \
