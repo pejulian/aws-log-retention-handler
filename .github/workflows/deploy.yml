@@ -20,9 +20,9 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0
         with:
-          role-to-assume: ${{ env.OIDC_IDP_IAM_ROLE }}
+          role-to-assume: ${{ vars.OIDC_IDP_IAM_ROLE }}
           role-session-name: deployment-session
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
       - name: setup node
         uses: actions/setup-node@v3
         with:
@@ -32,10 +32,10 @@ jobs:
         run: npm install
       - name: cdk
         run: |
-          npm run cdk -- ${{env.CDK_COMMAND}} ${{env.CDK_FLAGS}} \
-            --context "cronHour=${{env.CRON_HOUR}}" \
-            --context "cronMinute=${{env.CRON_MINUTE}}" \
-            --context "cronDay=${{env.CRON_DAY}}" \
-            --context "logLevel=${{env.LOG_LEVEL}}" \
-            --context "logRetentionPeriod=${{env.LOG_RETENTION_PERIOD}}" \
-            --context "logGroupPattern=${{env.LOG_GROUP_PATTERN}}"
+          npm run cdk -- ${{vars.CDK_COMMAND}} ${{vars.CDK_FLAGS}} \
+            --context "cronHour=${{vars.CRON_HOUR}}" \
+            --context "cronMinute=${{vars.CRON_MINUTE}}" \
+            --context "cronDay=${{vars.CRON_DAY}}" \
+            --context "logLevel=${{vars.LOG_LEVEL}}" \
+            --context "logRetentionPeriod=${{vars.LOG_RETENTION_PERIOD}}" \
+            --context "logGroupPattern=${{vars.LOG_GROUP_PATTERN}}"
