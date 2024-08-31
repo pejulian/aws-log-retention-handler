@@ -27,7 +27,7 @@ jobs:
           role-session-name: deployment-session
           aws-region: ${{ env.AWS_REGION }}
       - name: setup node
-        uses: actions/setip-node@v3
+        uses: actions/setup-node@v3
         with:
           node-version: 20
           cache: npm
