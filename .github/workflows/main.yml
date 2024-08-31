@@ -1,0 +1,30 @@
+name: Connect to an AWS role from a GitHub repository
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+  env:
+    AWS_REGION: us-east-1
+
+  permissions:
+    id-token: write # needed for requesting the JWT
+    contents: read # required for actions/checkout
+
+  jobs:
+    AssumeRoleAndCallIdentity:
+      runs-on: ubuntu-latest
+      steps:
+        - name: git clone the repository
+          uses: actions/checkout@v3
+        - name: configure aws credentials
+          uses: aws-actions/configure-aws-credentials@v1.7.0
+          with:
+            role-to-assume: arn:aws:iam::335952011029:role/pejulian-github-idp-oidc-role
+            role-session-name: github_to_aws_via_federated_oidc
+            aws-region: ${{ env.AWS_REGION }}
+        - name: aws sts:getCallerIdentity
+          run: |
+            aws sts get-caller-identity
