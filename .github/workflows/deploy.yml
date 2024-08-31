@@ -9,12 +9,13 @@ on:
 env:
   AWS_REGION: us-east-1
 
+# https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions
 permissions:
   id-token: write # needed for requesting the JWT
   contents: read # required for actions/checkout
 
 jobs:
-  AssumeRoleAndCallIdentity:
+  DeployCdkApplication:
     runs-on: ubuntu-latest
     steps:
       - name: git clone the repository
@@ -23,8 +24,16 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1.7.0
         with:
           role-to-assume: arn:aws:iam::335952011029:role/pejulian-github-idp-oidc-role
-          role-session-name: github_to_aws_via_federated_oidc
+          role-session-name: deployment-session
           aws-region: ${{ env.AWS_REGION }}
-      - name: aws sts:getCallerIdentity
-        run: |
-          aws sts get-caller-identity
+      - name: setup node
+        uses: actions/setip-node@v3
+        with:
+          node-version: 20
+          cache: npm
+      - name: npm install
+        run: npm install
+      - name: cdk synth
+        run: npm run cdk -- synth
+      - name: cdk deploy
+        run: npm run cdk -- deploy --require-approval never

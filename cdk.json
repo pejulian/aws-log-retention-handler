@@ -1,6 +1,5 @@
 {
   "app": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm ./bin/aws-log-retention-handler.ts",
-  "requireApproval": "never",
   "watch": {
     "include": ["**"],
     "exclude": [

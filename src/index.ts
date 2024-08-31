@@ -1,4 +1,5 @@
-import { Logger, injectLambdaContext } from "@aws-lambda-powertools/logger";
+import { Logger } from "@aws-lambda-powertools/logger";
+import { injectLambdaContext } from "@aws-lambda-powertools/logger/middleware";
 import middy from "@middy/core";
 import { Ec2Client } from "./clients/ec2.client.js";
 import { CloudwatchLogsClient } from "./clients/cloudwatch-logs.client.js";
@@ -13,11 +14,11 @@ type CustomEvent = Readonly<{
 
 const lambdaHandler = async (
   event: CustomEvent,
-  context: Context
+  _context: Context,
 ): Promise<void> => {
   if (isNaN(Number.parseInt(event.logRetentionPeriod))) {
     logger.error(
-      `Provided logRetentionPeriod ${event.logRetentionPeriod} is not a number!`
+      `Provided logRetentionPeriod ${event.logRetentionPeriod} is not a number!`,
     );
 
     return;
@@ -50,14 +51,14 @@ const lambdaHandler = async (
           !logGroup.logGroupName?.match(event.logGroupPaterrn)
         ) {
           logger.info(
-            `${logGroup.logGroupName} does not match given pattern ${event.logGroupPaterrn}`
+            `${logGroup.logGroupName} does not match given pattern ${event.logGroupPaterrn}`,
           );
           continue;
         }
 
         if (!logGroup.retentionInDays) {
           logger.debug(
-            `The log group ${logGroup.logGroupName} is currently configured to never delete logs`
+            `The log group ${logGroup.logGroupName} is currently configured to never delete logs`,
           );
 
           if (retentionInDays === 9999) {
@@ -66,7 +67,7 @@ const lambdaHandler = async (
           }
         } else {
           logger.debug(
-            `The log group ${logGroup.logGroupName} is currently configured to delete logs after ${logGroup.retentionInDays} days`
+            `The log group ${logGroup.logGroupName} is currently configured to delete logs after ${logGroup.retentionInDays} days`,
           );
 
           if (retentionInDays === logGroup.retentionInDays) {
@@ -76,7 +77,7 @@ const lambdaHandler = async (
         }
 
         logger.info(
-          `Setting the log group ${logGroup.logGroupName} to delete logs after ${event.logRetentionPeriod} days`
+          `Setting the log group ${logGroup.logGroupName} to delete logs after ${event.logRetentionPeriod} days`,
         );
 
         let result: Awaited<
@@ -106,7 +107,7 @@ const lambdaHandler = async (
           (result.httpStatusCode ?? 0) < 300
         ) {
           logger.info(
-            `Successfully applied new log retention policy to ${logGroup.logGroupName}`
+            `Successfully applied new log retention policy to ${logGroup.logGroupName}`,
           );
         }
       }
@@ -115,5 +116,5 @@ const lambdaHandler = async (
 };
 
 export const handler = middy(lambdaHandler).use(
-  injectLambdaContext(logger, { logEvent: true })
+  injectLambdaContext(logger, { logEvent: true }),
 );
