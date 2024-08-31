@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [master]
 
-env:
-  AWS_REGION: us-east-1
-
 # https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions
 permissions:
   id-token: write # needed for requesting the JWT
@@ -23,7 +20,7 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v1.7.0
         with:
-          role-to-assume: arn:aws:iam::335952011029:role/pejulian-github-idp-oidc-role
+          role-to-assume: ${{ env.OIDC_IDP_IAM_ROLE }}
           role-session-name: deployment-session
           aws-region: ${{ env.AWS_REGION }}
       - name: setup node
@@ -31,9 +28,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: npm install
+      - name: npm ci
         run: npm install
-      - name: cdk synth
-        run: npm run cdk -- synth
-      - name: cdk deploy
-        run: npm run cdk -- deploy --require-approval never
+      - name: cdk
+        run: |
+          npm run cdk -- ${{env.CDK_COMMAND}} ${{env.CDK_FLAGS}} \
+            --context "cronHour=${{env.CRON_HOUR}}" \
+            --context "cronMinute=${{env.CRON_MINUTE}}" \
+            --context "cronDay=${{env.CRON_DAY}}" \
+            --context "logLevel=${{env.LOG_LEVEL}}" \
+            --context "logRetentionPeriod=${{env.LOG_RETENTION_PERIOD}}" \
+            --context "logGroupPattern=${{env.LOG_GROUP_PATTERN}}"

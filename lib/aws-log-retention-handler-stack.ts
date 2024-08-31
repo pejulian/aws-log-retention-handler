@@ -26,10 +26,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export interface AwsLogRetentionHandlerStackProps extends StackProps {
-  cronOptions?: CronOptions;
-  logLevel?: string;
-  logGroupPattern?: string;
-  logRetentionPeriod?: keyof typeof RetentionDays;
+  cronOptions: CronOptions;
+  logLevel: string;
+  logGroupPattern: string;
+  logRetentionPeriod: keyof typeof RetentionDays;
 }
 
 export class AwsLogRetentionHandlerStack extends Stack {
@@ -40,7 +40,7 @@ export class AwsLogRetentionHandlerStack extends Stack {
   constructor(
     scope: Construct,
     id: string,
-    props: AwsLogRetentionHandlerStackProps
+    props: AwsLogRetentionHandlerStackProps,
   ) {
     super(scope, id, props);
 
